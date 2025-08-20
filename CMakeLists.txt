@@ -1,77 +1,82 @@
-### Basic cmake setup ###
+# CMakeList.txt : Top-level CMake project file, do global configuration
+# and include sub-projects here.
+#
+cmake_minimum_required (VERSION 3.19)
 
-cmake_minimum_required(VERSION 3.2.1)
+project ("prj")
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/staticlibs)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/staticlibs)
+# Set output
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-set(CMAKE_C_FLAGS "-Wall")
-set(CMAKE_C_FLAGS "-Wextra")
+# specify the C++ standard
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-project(Silent_Packer)
+# Use static link MSVCRT and disable RTTI
+if(MSVC)
+  cmake_policy(SET CMP0091 NEW)
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /MT")
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
 
-# https://cliutils.gitlab.io/modern-cmake/chapters/projects/submodule.html
-### Git Submodule management ###
-find_package(Git REQUIRED)
-if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-    option(GIT_SUBMODULE "Check submodules during build" ON)
-    if(GIT_SUBMODULE)
-        message(STATUS "Submodule update")
-        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                RESULT_VARIABLE GIT_SUBMOD_RESULT)
-        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
-        endif()
-    endif()
-endif()
+  set(CompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+        )
+  foreach(CompilerFlag ${CompilerFlags})
+    string(REPLACE "/GR" "/GR-" ${CompilerFlag} "${${CompilerFlag}}")
+  endforeach()
+  add_compile_definitions(_HAS_STATIC_RTTI=0) # The Clang MSVC driver fails to define _HAS_STATIC_RTTI to 0, which is used by the MSVC standard library to enable no-RTTI code.
+else()
+    set(CMAKE_CUSTOM_COMPILE_FLAGS "-fPIC -no-pie -fno-exceptions -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -fvisibility=hidden -static")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_CUSTOM_COMPILE_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CUSTOM_COMPILE_FLAGS} -fno-rtti -fno-threadsafe-statics -fvisibility-inlines-hidden")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s -Wl,--gc-sections,--print-gc-sections -ffile-prefix-map=${CMAKE_SOURCE_DIR}=")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s -Wl,--gc-sections,--print-gc-sections -ffile-prefix-map=${CMAKE_SOURCE_DIR}=")
+endif(MSVC)
 
-### NASM management ###
-enable_language(ASM_NASM)
-if(CMAKE_ASM_NASM_COMPILER_LOADED)
-    set(CAN_USE_ASSEMBLER TRUE)
+# Include sub-projects.
+add_subdirectory ("src")
 
-    # https://stackoverflow.com/questions/49131996/compile-asm-and-c-with-asm-for-debugging
-    set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
-    set(CMAKE_ASM_NASM_COMPILE_OBJECT "<CMAKE_ASM_NASM_COMPILER> <INCLUDES> \
-    <FLAGS> -f ${CMAKE_ASM_NASM_OBJECT_FORMAT} -o <OBJECT> <SOURCE>")
-    set_source_files_properties(src/common/aes_128_ecb_encryption.asm PROPERTIES COMPILE_FLAGS "-g -Fdwarf")
+# Print compiler flags
+if(MSVC)
+set(CompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+        )
+foreach(CompilerFlag ${CompilerFlags})
+  message("INFO: ${CompilerFlag}= ${${CompilerFlag}}")
+endforeach()
+endif(MSVC)
 
-    file(GLOB_RECURSE ENGINE_ASM_FILES "src/engine/*.asm")
-    set(ENGINE_SOURCES ${ENGINE_SOURCES} ${ENGINE_ASM_FILES})
-endif(CMAKE_ASM_NASM_COMPILER_LOADED)
-
-### Includes ###
-include_directories(includes)
-include_directories(includes/ELF)
-include_directories(includes/PE)
-include_directories(includes/STUB)
-include_directories(includes/common)
-include_directories(src/utilities/Silent_Log)
-
-### Sources ###
-set(SOURCES src/main.c)
-
-set(UTILITIES_SOURCES src/utilities/Silent_Log/log.c)
-set(SOURCES ${SOURCES} ${UTILITIES_SOURCES})
-
-set(ELF_SOURCES src/ELF/elf_allocation.c src/ELF/elf_functions.c src/ELF/elf_packing.c src/ELF/elf_encryption.c src/ELF/elf_section_insertion.c src/ELF/elf_writing.c src/ELF/elf_silvio_infection.c src/ELF/elf_code_cave.c src/ELF/elf_deallocation.c)
-set(PE_SOURCES src/PE/pe_allocation.c src/PE/pe_functions.c src/PE/pe_writing.c src/PE/pe_packing.c src/PE/pe_code_cave.c src/PE/pe_packing_method.c src/PE/pe_encryption.c src/PE/pe_section_insertion.c src/PE/pe_deallocation.c)
-
-set(COMMON_SOURCES ${ELF_SOURCES} ${PE_SOURCES} src/common/file_functions.c src/common/cipher_functions.c src/ELF/elf_packing_method.c src/common/loader_functions.c src/common/packer_config.c)
-
-set(ASSEMBLY_SOURCES src/common/aes_128_ecb_encryption.asm)
-
-set(SOURCES ${SOURCES} ${COMMON_SOURCES} ${ASSEMBLY_SOURCES})
-
-add_executable(Silent_Packer ${SOURCES})
-install(TARGETS Silent_Packer DESTINATION bin)
-
-### External libs ###
-
-option(ARGTABLE3_ENABLE_TESTS OFF)
-option(ARGTABLE3_ENABLE_EXAMPLES OFF)
-add_subdirectory("extern/argtable3")
-
-target_link_libraries(Silent_Packer argtable3 pthread m)
+string(TOUPPER "${CMAKE_BUILD_TYPE}" _build_type)
+string(TIMESTAMP CURRENT_SOURCE_DATE_EPOCH UTC)
+message(STATUS "Summary of build options:
+    SOURCE_DATE_EPOCH : ${CURRENT_SOURCE_DATE_EPOCH}
+    Install prefix    : ${CMAKE_INSTALL_PREFIX}
+    Target system     : ${CMAKE_SYSTEM_NAME}
+    Toolchain         : ${CMAKE_TOOLCHAIN_FILE}
+    ModulePath        : ${CMAKE_MODULE_PATH}
+    PrefixPath        : ${CMAKE_PREFIX_PATH}
+    FindRootPath      : ${CMAKE_FIND_ROOT_PATH}
+    Compiler:
+      Build type      : ${CMAKE_BUILD_TYPE}
+      C compiler      : ${CMAKE_C_COMPILER}
+      CFLAGS          : ${CMAKE_C_FLAGS_${_build_type}} ${CMAKE_C_FLAGS}
+      C++ compiler    : ${CMAKE_CXX_COMPILER}
+      CXXFLAGS        : ${CMAKE_CXX_FLAGS_${_build_type}} ${CMAKE_CXX_FLAGS}
+      WARNCFLAGS      : ${WARNCFLAGS}
+      CXX1XCXXFLAGS   : ${CXX1XCXXFLAGS}
+")

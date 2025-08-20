@@ -1,6 +1,6 @@
 # Silent_Packer
 
-Silent_Packer is an ELF / PE packer written in pure C.
+Silent_Packer is an ELF / PE packer
 
 This program can be used to obfuscate a binary. This packer supports PIE binaries.
 
@@ -24,6 +24,10 @@ Silent_Packer currently support the following file formats :
 - ELF32
 - PE32+
 - PE32
+- ARM
+- AARCH64
+- MIPS32
+- MIPS64
 
 I will maybe add the MACH-O file format later. You can suggest me a file format that you want me to add.
 
@@ -32,11 +36,6 @@ I will maybe add the MACH-O file format later. You can suggest me a file format 
 Silent_Packer currently support the following cipher methods :
 
 - XOR
-- AES-128-ECB
-
-Support for some more secure AES modes should arrive soon (AES-128-CBC, AES-256, ...)
-
-You can suggest me a cipher method that you want me to add.
 
 ## Encryption methods
 
@@ -44,22 +43,13 @@ Silent_Packer currently support the following encryption methods :
 
 - Section Insertion
 - Code Cave
-- Silvio Text Infection (only for ELF files)
 
 For a basic explanation on how does these methods work, see the [METHODS](https://github.com/SilentVoid13/Silent_Packer/blob/master/METHODS.md) file.
 
 ## Usage
 
 ```bash
-Usage: Silent_Packer [-hVvd] [-f file] [-c <xor, aes128_ecb>] [-m <section_insertion, code_cave, silvio_infection>] [-o file]
-  -h, --help                Display this help and exit
-  -V, --version             Display version info and exit
-  -v, --verbose             Verbose output
-  -d, --debug               Debug mode
-  -f, --file=file           File to pack
-  -c, --cipher=<xor, aes128_ecb> Cipher method to use
-  -m, --method=<section_insertion, code_cave, silvio_infection> Method to pack the binary
-  -o, --output=file         Output file
+./prj <method> <input_file>
 ```
 
 ## Building
@@ -78,7 +68,6 @@ No windows version is available at the moment.
 mkdir build && cd build
 cmake ..
 make
-make install
 ```
 
 The compiled binary will be available in the **bin** directory.

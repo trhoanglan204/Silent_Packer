@@ -1,10 +1,5 @@
-//
-// Created by silentvoid on 3/19/20.
-// Copyright (c) 2020 SilentVoid. All rights reserved.
-//
-
-#ifndef SILENT_PACKER_ENCRYPT_PE_H
-#define SILENT_PACKER_ENCRYPT_PE_H
+#ifndef ENCRYPT_PE_H
+#define ENCRYPT_PE_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +7,6 @@
 
 #include "pe_allocation.h"
 
-int encrypt_pe(t_pe *pe);
+int encrypt_pe(t_pe* pe);
 
-#endif //SILENT_PACKER_ENCRYPT_PE_H
+#endif //ENCRYPT_PE_H

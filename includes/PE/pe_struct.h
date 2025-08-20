@@ -1,30 +1,17 @@
-//
-// Created by silentvoid on 3/16/20.
-// Copyright (c) 2020 SilentVoid. All rights reserved.
-//
-
-#ifndef SILENT_PACKER_PE_STRUCT_H
-#define SILENT_PACKER_PE_STRUCT_H
+#ifndef PE_STRUCT_H
+#define PE_STRUCT_H
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 
-#define IMAGE_NUMBEROF_DIRECTORY_ENTRIES 16
 #define IMAGE_SIZEOF_SHORT_NAME 8
-
-#define DOSMAG 0x5a4d
 
 #define STR_DOSMAG "MZ"
 #define SSTR_DOSMAG 2
 
-#define PEMAG 0x00004550
-
 #define DOS_STUB_SIZE 64
-
-#define PE32MAG 0x10b
-#define PE64MAG 0x20b
 
 #define IMAGE_FILE_RELOCS_STRIPPED 0x0001 /**< No relocation info. */
 #define IMAGE_FILE_EXECUTABLE_IMAGE 0x0002
@@ -43,6 +30,23 @@
 #define IMAGE_FILE_UP_SYSTEM_ONLY 0x4000
 #define IMAGE_FILE_BYTES_REVERSED_HI 0x8000
 
+#define IMAGE_DIRECTORY_ENTRY_EXPORT 0
+#define IMAGE_DIRECTORY_ENTRY_IMPORT 1
+#define IMAGE_DIRECTORY_ENTRY_RESOURCE 2
+#define IMAGE_DIRECTORY_ENTRY_EXCEPTION 3
+#define IMAGE_DIRECTORY_ENTRY_SECURITY 4
+#define IMAGE_DIRECTORY_ENTRY_BASERELOC 5
+#define IMAGE_DIRECTORY_ENTRY_DEBUG 6
+#define IMAGE_DIRECTORY_ENTRY_ARCHITECTURE 7
+#define IMAGE_DIRECTORY_ENTRY_COPYRIGHT 7 //(x86 usage)
+#define IMAGE_DIRECTORY_ENTRY_GLOBALPTR 8
+#define IMAGE_DIRECTORY_ENTRY_TLS 9
+#define IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG 10
+#define IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT 11
+#define IMAGE_DIRECTORY_ENTRY_IAT 12
+#define IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT 13
+#define IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR 14
+
 /* These are the settings of the Machine field. */
 #define IMAGE_FILE_MACHINE_UNKNOWN 0x0 /**< COFF header's Machine field for
                                          unknown machine. */
@@ -50,8 +54,12 @@
                                          I386 machines. */
 #define IMAGE_FILE_MACHINE_ARM 0x01c0 /**< COFF header's Machine field for ARM
                                         machines. */
+#define IMAGE_FILE_MACHINE_ARMV7 0x01c4 /**< COFF header's Machine field for ARMv7
+                                        machines. */
 #define IMAGE_FILE_MACHINE_AMD64 0x8664 /**< COFF header's Machine field for
                                           AMD machines. */
+#define IMAGE_FILE_MACHINE_ARM64 0xaa64 /**< COFF header's Machine field for
+                                          ARM64 machines. */
 
 #define IMAGE_NUMBEROF_DIRECTORY_ENTRIES 16
 
@@ -66,11 +74,14 @@
 #define IMAGE_SCN_MEM_EXECUTE 0x20000000 /**< The section can be executed as code. */
 #define IMAGE_SCN_MEM_READ 0x40000000 /**< The section can be read. */
 #define IMAGE_SCN_MEM_WRITE 0x80000000 /**< The section can be written. */
+#define IMAGE_SCN_CNT_INITIALIZED_DATA 0x00000040 /**< The section contains initialized data. */
+#define IMAGE_SCN_CNT_UNINITIALIZED_DATA 0x00000080 /**< The section contains uninitialized data. */
 
-/* PE classes */
-#define PECLASSNONE 0 /**< Unknown class. */
-#define PECLASS32 1 /**< 32-bit objects. */
-#define PECLASS64 2 /**< 64-bit objects. */
+#define IMAGE_SUBSYSTEM_UNKNOWN 0
+#define IMAGE_SUBSYSTEM_NATIVE 1
+#define IMAGE_SUBSYSTEM_WINDOWS_GUI 2
+#define IMAGE_SUBSYSTEM_WINDOWS_CUI 3
+#define IMAGE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION 16
 
 typedef struct _IMAGE_DOS_HEADER {
     uint16_t e_magic; /**< DOS header signature. Must be equal to 'MZ' */
@@ -92,22 +103,22 @@ typedef struct _IMAGE_DOS_HEADER {
     uint16_t e_oeminfo; /**< OEM information; e_oemid specific */
     uint16_t e_res2[10]; /**< Reserved words */
     uint32_t e_lfanew; /**< Offset to extended header */
-} IMAGE_DOS_HEADER, *PIMAGE_DOS_HEADER;
+} IMAGE_DOS_HEADER, * PIMAGE_DOS_HEADER;
 
 typedef struct _IMAGE_FILE_HEADER {
-    uint16_t  Machine;
-    uint16_t  NumberOfSections;
+    uint16_t Machine;
+    uint16_t NumberOfSections;
     uint32_t TimeDateStamp;
     uint32_t PointerToSymbolTable;
     uint32_t NumberOfSymbols;
-    uint16_t  SizeOfOptionalHeader;
-    uint16_t  Characteristics;
-} IMAGE_FILE_HEADER, *PIMAGE_FILE_HEADER;
+    uint16_t SizeOfOptionalHeader;
+    uint16_t Characteristics;
+} IMAGE_FILE_HEADER, * PIMAGE_FILE_HEADER;
 
 typedef struct _IMAGE_DATA_DIRECTORY {
     uint32_t VirtualAddress;
     uint32_t Size;
-} IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;
+} IMAGE_DATA_DIRECTORY, * PIMAGE_DATA_DIRECTORY;
 
 typedef struct _IMAGE_OPTIONAL_HEADER32 {
     uint16_t Magic; /**< OPTIONAL header signature. Equals to
@@ -171,7 +182,7 @@ typedef struct _IMAGE_OPTIONAL_HEADER32 {
                                     #DataDirectory array. Always set to 16 by
                                     the tools. */
     IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES]; /**< Array of #IMAGE_DATA_DIRECTORY structures. See WINNT.H. */
-} IMAGE_OPTIONAL_HEADER32, *PIMAGE_OPTIONAL_HEADER32;
+} IMAGE_OPTIONAL_HEADER32, * PIMAGE_OPTIONAL_HEADER32;
 
 typedef struct _IMAGE_OPTIONAL_HEADER64 {
     uint16_t Magic; /**< OPTIONAL header signature. Equals to
@@ -233,7 +244,7 @@ typedef struct _IMAGE_OPTIONAL_HEADER64 {
                                     #DataDirectory array. Always set to 16 by
                                     the tools. */
     IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES]; /**< Array of #IMAGE_DATA_DIRECTORY structures. See WINNT.H. */
-} IMAGE_OPTIONAL_HEADER64, *PIMAGE_OPTIONAL_HEADER64;
+} IMAGE_OPTIONAL_HEADER64, * PIMAGE_OPTIONAL_HEADER64;
 
 typedef struct _IMAGE_NT_HEADERS32 {
     uint32_t Signature;
@@ -245,7 +256,7 @@ typedef struct _IMAGE_NT_HEADERS64 {
     uint32_t Signature;
     IMAGE_FILE_HEADER FileHeader;
     IMAGE_OPTIONAL_HEADER64 OptionalHeader;
-} IMAGE_NT_HEADERS64, *PIMAGE_NT_HEADERS64;
+} IMAGE_NT_HEADERS64, * PIMAGE_NT_HEADERS64;
 
 typedef struct _IMAGE_SECTION_HEADER {
     uint8_t Name[IMAGE_SIZEOF_SHORT_NAME]; /**< 8-bytes ANSI name of the
@@ -271,6 +282,6 @@ typedef struct _IMAGE_SECTION_HEADER {
                                     number table for the section. */
     uint32_t Characteristics; /**< Set of flags describing the section.
                                 (Readable, Writeable, Executable, etc.) */
-} IMAGE_SECTION_HEADER, *PIMAGE_SECTION_HEADER;
+} IMAGE_SECTION_HEADER, * PIMAGE_SECTION_HEADER;
 
-#endif //SILENT_PACKER_PE_STRUCT_H
+#endif //PE_STRUCT_H
