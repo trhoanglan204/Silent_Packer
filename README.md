@@ -65,9 +65,9 @@ No windows version is available at the moment.
 **On Linux**
 
 ```bash
-mkdir build && cd build
+mkdir out && cd out
 cmake ..
-make
+cmake --build .
 ```
 
 The compiled binary will be available in the **bin** directory.
@@ -85,3 +85,5 @@ Feel free to contribute. See the [TODO](https://github.com/SilentVoid13/Silent_P
 ## Disclaimer
 
 I am not responsible for what you do with the information and code provided. This is intended for professional or educational purposes only.
+
+Sorry to mess up the author code, I just want to make it better and more stables
