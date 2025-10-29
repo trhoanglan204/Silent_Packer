@@ -17,15 +17,6 @@ section .text
 loader_entry_point32:
 	pushx eax, edi, esi, esp, edx, ecx, ebx
 
-    ; syscall on windows seems like a pain
-    ;call get_my_loc
-    ;sub edx, next_i - msg
-	;mov ecx, edx
-	;mov edx, msg_len
-	;mov ebx, 1
-    ;mov eax, 4
-    ;int 0x80
-
     ; We save pie offset
     call get_my_loc
     sub edx, next_i - loader_entry_point32
@@ -35,9 +26,6 @@ loader_entry_point32:
     sub ebx, [edx]
 
 	jmp	start_unpacking
-
-msg	db	"[Unpacking...]", 10, 0
-msg_len	equ	$ - msg
 
 get_my_loc:
     call next_i

@@ -1,10 +1,5 @@
-//
-// Created by silentvoid on 3/18/20.
-// Copyright (c) 2020 SilentVoid. All rights reserved.
-//
-
-#ifndef SILENT_PACKER_PACKING_METHOD_PE_H
-#define SILENT_PACKER_PACKING_METHOD_PE_H
+#ifndef PACKING_METHOD_PE_H
+#define PACKING_METHOD_PE_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,4 +10,4 @@
 
 int pe_pack_using_method(t_pe *pe);
 
-#endif //SILENT_PACKER_PACKING_METHOD_PE_H
+#endif //PACKING_METHOD_PE_H
